@@ -1,0 +1,11 @@
+{
+  // Only build references.
+  "files": [],
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  },
+  "references": [
+    { "path": "./src/shared" },
+    { "path": "./src/server" }
+  ]
+}

@@ -1,0 +1,115 @@
+import {
+  context,
+  reddit,
+  settings,
+  redis
+} from "@devvit/web/server";
+import { PostOrCommentId, SubredditResource } from "./types";
+
+import { Readable } from "node:stream";
+import * as readline from "node:readline";
+
+// Helper function to get filtered list of resources
+export async function getAllResources() {
+  // Get full list of Resources from the app settings
+  const resourcesConfig = (await settings.get("resourceConfig")) as string;
+  if (resourcesConfig == undefined || resourcesConfig.trim() == "") return [];
+  const allResources: SubredditResource[] = [];
+  const stream = Readable.from(resourcesConfig);
+  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+  var resourceTitle = "";
+  var resourceBody = "";
+  for await (const line of rl) {
+    if (line.startsWith("---")) {
+      if (resourceTitle.trim() != "" && resourceBody.trim() != "") {
+        allResources.push({title: resourceTitle, body: trimNewlines(resourceBody)});
+        resourceTitle = "";
+        resourceBody = "";
+      }
+    }
+    else if (line.startsWith("title: ")) {
+      resourceTitle = line.substring("title: ".length);
+      resourceBody = "";
+    }
+    else if (line.startsWith("body:")) {
+      if (line.startsWith("body: "))
+        resourceBody = line.substring("body: ".length);
+      else resourceBody = "";
+    }
+    else {
+      resourceBody += line + "\n";
+    }
+  }
+  // Add final resource if config doesn't end with "---"
+  if (resourceTitle.trim() != "" && resourceBody.trim() != "") {
+    allResources.push({title: resourceTitle, body: trimNewlines(resourceBody)});
+  }
+  // Return constructed list of resources
+  return allResources;
+}
+
+export async function buildResourceComment(resourceText: string, summonerUsername: string) {
+  const userIsMod = await isUserAMod(summonerUsername);
+  if (userIsMod) {
+    const anonymizeMods = (await settings.get("anonymizeMods")) as boolean;
+    if (anonymizeMods) {
+      return buildResourceCommentAsMod(resourceText);
+    }
+    else {
+      return buildResourceCommentAsUser(resourceText, summonerUsername);
+    }
+  }
+  else return buildResourceCommentAsUser(resourceText, summonerUsername);
+}
+
+function buildResourceCommentAsUser(resourceText: string, summonerUsername: string) {
+  const pretext = `u/${summonerUsername} has suggested the following resource:\n\n---\n\n`;
+  const posttext = `\n\n---\n\n*I am a bot, and this action was performed automatically. `
+    + `If u/${summonerUsername} wishes to delete this comment, they can reply "!delete" (without quotes). `
+    + `If this comment is inappropriate, please report it and the moderator(s) will review.*`;
+  return pretext + resourceText + posttext;
+}
+
+function buildResourceCommentAsMod(resourceText: string) {
+  const modmailLink = `https://www.reddit.com/message/compose/?to=/r/${context.subredditName}&subject=Resource%20Reply%20app`;
+  const pretext = `A moderator has suggested the following resource:\n\n---\n\n`;
+  const posttext = `\n\n---\n\n*I am a bot, and this action was performed automatically. `
+    + `Please [contact the moderators of this subreddit](${modmailLink}) if you have any questions or concerns.*`;
+  return pretext + resourceText + posttext;
+}
+
+export async function commentResource(resourceText: string, targetId: string, summonerUsername: string, pinComment: boolean) {
+  const commentBody = await buildResourceComment(resourceText, summonerUsername);
+  const newComment = await reddit.submitComment({
+    id: targetId as PostOrCommentId,
+    text: commentBody,
+    runAs: 'APP'
+  });
+  await newComment.distinguish(pinComment); // Always distinguish as mod; optionally pin.
+  const lockComment = (await settings.get("lockReply")) as boolean;
+  if (lockComment) await newComment.lock();
+  return newComment;
+}
+
+export function trimNewlines(text: string) {
+  var trimmedText = text;
+  while (trimmedText.startsWith("\n")) {
+    trimmedText = trimmedText.substring(1);
+  }
+  while (trimmedText.endsWith("\n")) {
+    trimmedText = trimmedText.substring(0, trimmedText.length - 1);
+  }
+  return trimmedText;
+}
+
+export async function isUserAMod(username: string) {
+  const user = await reddit.getUserByUsername(username);
+  if (user == undefined || user == null) return false;
+  const perms = await user.getModPermissionsForSubreddit(context.subredditName);
+  return (perms != undefined && perms != null && perms.length > 0);
+}
+
+export async function isUserBanned(username: string) {
+  const bannedUser = await reddit.getBannedUsers({ subredditName: context.subredditName, username: username }).all();
+  return (bannedUser.length > 0);
+}

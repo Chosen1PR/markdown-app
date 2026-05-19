@@ -1,0 +1,82 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "resource-reply",
+  "permissions": {
+    "http": {
+      "enable": false
+    },
+    "media": false,
+    "realtime": false,
+    "redis": true,
+    "reddit": {
+      "enable": true
+    }
+  },
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs"
+  },
+  "settings": {
+    "subreddit": {
+      "pinReply": {
+        "type": "boolean",
+        "label": "Allow users to pin resources",
+        "helpText": "If enabled, users will be able to pin a resource reply to a post if they're replying directly to it.",
+        "defaultValue": false
+      },
+      "lockReply": {
+        "type": "boolean",
+        "label": "Lock all replies",
+        "helpText": "If enabled, all resource replies will be locked to prevent further replies. This would prevent users from being able to delete their resource replies with the \"!delete\" command.",
+        "defaultValue": false
+      },
+      "resourceConfig": {
+        "type": "paragraph",
+        "label": "Resource Configuration",
+        "helpText": "See the full instructions on r/resource_reply_dev for details on how to configure resources",
+        "defaultValue": ""
+      },
+      "anonymizeMods": {
+        "type": "boolean",
+        "label": "Anonymize moderators",
+        "helpText": "If enabled, moderator usernames will be hidden when suggesting resources.",
+        "defaultValue": true
+      }
+    }
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Resource Reply",
+        "description": "Settings",
+        "forUserType": "moderator",
+        "location": [
+          "subreddit"
+        ],
+        "endpoint": "/internal/menu/app-settings"
+      },
+      {
+        "label": "Reply with resource",
+        "forUserType": "user",
+        "location": [
+          "comment",
+          "post"
+        ],
+        "endpoint": "/internal/menu/comment-resource"
+      }
+    ]
+  },
+  "forms": {
+    "commentResourceForm": "/internal/forms/comment-resource-submit"
+  },
+  "triggers": {
+    "onAppUpgrade": "/internal/triggers/on-app-upgrade",
+    "onCommentCreate": "/internal/triggers/on-comment-create"
+  },
+  "marketingAssets": {
+    "icon": "assets/rr-icon.png"
+  },
+  "dev": {
+    "subreddit": "CapitalOneBank"
+  }
+}
