@@ -61,7 +61,7 @@ Resources are **not** backed up anywhere, so if you need to uninstall and reinst
 
 ## Changelog
 
-### [0.2.5] Initial version (2026-05-20)
+### [0.2.6] Initial version (2026-05-20)
 
 #### Features
 
