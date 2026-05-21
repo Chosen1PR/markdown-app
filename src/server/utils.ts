@@ -60,9 +60,9 @@ export async function buildResourceComment(resourceText: string, summonerUsernam
 // Helper function to build comment body when the summoner is not a mod (or mods are not anonymized)
 function buildResourceCommentAsUser(resourceText: string, summonerUsername: string) {
   const pretext = `u/${summonerUsername} has suggested the following resource:\n\n`;
-  const posttext = `\n\n*I am a bot that has been summoned by u/${summonerUsername}. `
-    + `If u/${summonerUsername} wishes to delete this comment, they can reply "!delete" (without quotes). `
-    + `If this comment is inappropriate, please report it and the moderator(s) will review.*`;
+  const posttext = `\n\n^(*I am a bot that was summoned by user ${summonerUsername}. `
+    + `If ${summonerUsername} wishes to delete this comment, they can reply "!delete" \\(without quotes or spaces\\). `
+    + `If this comment is inappropriate, please report it and the moderator\\(s\\) will review.*)`;
   return pretext + resourceText + posttext;
 }
 

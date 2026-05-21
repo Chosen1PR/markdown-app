@@ -61,12 +61,15 @@ Resources are **not** backed up anywhere, so if you need to uninstall and reinst
 
 ## Changelog
 
-### [0.2.4] Initial version (2026-05-20)
+### [0.2.5] Initial version (2026-05-20)
 
 #### Features
 
 - Allow users to reply with a helpful resource in the form of a pre-defined comment.
 - Define resources by title and comment body.
+- Choose whether to allow users to pin a resource comment to a post if they're replying directly to it.
+- Choose whether to lock replies to resource comments by default.
+- Choose whether to hide moderator usernames.
 
 #### Bug Fixes
 
