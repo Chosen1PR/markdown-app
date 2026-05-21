@@ -5,12 +5,11 @@ import {
   getServerPort,
   reddit,
   settings,
-  redis
 } from "@devvit/web/server";
 
-import type { PostId, CommentId, PostOrCommentId, SubredditResource } from "./types";
+import type { CommentId, SubredditResource } from "./types";
 
-import { getAllResources, isUserAMod, commentResource, isUserBanned } from "./utils";
+import { getAllResources, isUserAMod, commentResource, isUserBanned, preCommentError } from "./utils";
 
 //import type { Request, Response } from 'express';
 //import { UiResponse } from '@devvit/web/shared';
@@ -26,19 +25,6 @@ app.use(express.text());
 
 const router = express.Router();
 
-
-// Trigger handler for app upgrades
-router.post('/internal/triggers/on-app-upgrade', async (_req, res) => {
-  //const installer = req.body.installer;
-  //console.log('Installer:', JSON.stringify(installer, null, 2));
-  //const modList = reddit.getModerators({ subredditName: context.subredditName, limit: 100 });
-  //const mods = await modList.all();
-  //for (let i = 0; i < mods.length; i++) {
-  //  await redis.del(mods[i]!.username);
-  //}
-  //res.status(200).json({ status: 'ok' });
-});
-
 // Menu item for app settings
 router.post("/internal/menu/app-settings", async (_req, res): Promise<void> => {
   res.json({
@@ -49,27 +35,28 @@ router.post("/internal/menu/app-settings", async (_req, res): Promise<void> => {
 // Menu item which launches Comment Resource form
 router.post("/internal/menu/comment-resource", async (req, res) => {
   const summonerName = context.username!;
+  const targetId = req.body.targetId! as string;
+  const isPost = targetId.startsWith("t3_");
   if (await isUserBanned(summonerName)) {
     res.json({
       showToast: 'You are banned from this subreddit and cannot suggest resources.'
     });
     return;
   }
-  const targetId = req.body.targetId! as string;
-  const isPost = targetId.startsWith("t3_");
+  var pinSetting = (await settings.get("pinReply")) as boolean;
+  if (await isUserAMod(summonerName))
+    pinSetting = true; // Always enable option to pin for mods
   const resources = await getAllResources();
-  const pinSetting = (await settings.get("pinReply")) as boolean;
   res.json({
     showForm: {
       name: 'commentResourceForm',
       form: {
-        title: 'Reply with Resource',
+        title: 'Reply with resource',
         fields: [
           {
             type: 'select',
             name: 'resource',
             label: 'Select a resource',
-            //helpText: 'Reminder: This functionality only works with Removal Reasons.',
             options: resources.map((resources: SubredditResource) => ({
               label: resources.title,
               value: resources.body,
@@ -90,6 +77,7 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
             label: 'Your username',
             helpText: 'This will be included in the comment to indicate who suggested the resource.',
             defaultValue: context.username!,
+            required: true,
             disabled: true
           },
           {
@@ -98,6 +86,7 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
             label: 'Post/comment ID',
             helpText: 'This is the ID of the post or comment you are replying to.',
             defaultValue: targetId,
+            required: true,
             disabled: true
           },
           /*{
@@ -131,15 +120,24 @@ router.post("/internal/forms/comment-resource-submit", async (req, res) => {
   const { resource, pinReply, summonerName, targetId } = req.body;
   //const id = await redis.hGet(modUsername, 'id') as string;
   try {
-    await commentResource(resource, targetId, summonerName, pinReply);
-    res.json({
-      showToast: 'Resource submitted as comment.'
-    });
+    const preCommentErr = await preCommentError(targetId, pinReply);
+    if (preCommentErr == "none") {
+      await commentResource(resource, targetId, summonerName, pinReply);
+      res.json({
+        showToast: 'Resource submitted as comment!'
+      });
+    }
+    else {
+      res.json({
+        showToast: preCommentErr
+      });
+    }
   }
   catch (error) {
     res.json({
       showToast: 'Error: Could not submit comment.'
     });
+    console.log(error);
   }
 });
 
@@ -160,10 +158,20 @@ router.post('/internal/triggers/on-comment-create', async (req, _res) => {
       summonerName = parentComment.body.substring(2, parentComment.body.indexOf(' '));
     const userIsMod = await isUserAMod(commentAuthorName);
     const userIsSummoner = (commentAuthorName == summonerName);
-    if (userIsMod || userIsSummoner) {
+    if (userIsMod) {
       await parentComment.delete();
     }
+    else if (userIsSummoner) {
+      await parentComment.remove();
+    }
   }
+});
+
+// Trigger handler for app upgrades
+router.post('/internal/triggers/on-app-upgrade', async (_req, _res) => {
+  //const installer = req.body.installer;
+  //console.log('Installer:', JSON.stringify(installer, null, 2));
+  //res.status(200).json({ status: 'ok' });
 });
 
 app.use(router);

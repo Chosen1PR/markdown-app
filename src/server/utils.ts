@@ -2,9 +2,8 @@ import {
   context,
   reddit,
   settings,
-  redis
 } from "@devvit/web/server";
-import { PostOrCommentId, SubredditResource } from "./types";
+import { PostOrCommentId, PostId, SubredditResource } from "./types";
 
 import { Readable } from "node:stream";
 import * as readline from "node:readline";
@@ -20,7 +19,7 @@ export async function getAllResources() {
   var resourceTitle = "";
   var resourceBody = "";
   for await (const line of rl) {
-    if (line.startsWith("---")) {
+    if (line.startsWith("----")) {
       if (resourceTitle.trim() != "" && resourceBody.trim() != "") {
         allResources.push({title: resourceTitle, body: trimNewlines(resourceBody)});
         resourceTitle = "";
@@ -30,11 +29,6 @@ export async function getAllResources() {
     else if (line.startsWith("title: ")) {
       resourceTitle = line.substring("title: ".length);
       resourceBody = "";
-    }
-    else if (line.startsWith("body:")) {
-      if (line.startsWith("body: "))
-        resourceBody = line.substring("body: ".length);
-      else resourceBody = "";
     }
     else {
       resourceBody += line + "\n";
@@ -48,12 +42,13 @@ export async function getAllResources() {
   return allResources;
 }
 
+// Helper function to build the comment body for a resource suggestion
 export async function buildResourceComment(resourceText: string, summonerUsername: string) {
   const userIsMod = await isUserAMod(summonerUsername);
   if (userIsMod) {
     const anonymizeMods = (await settings.get("anonymizeMods")) as boolean;
     if (anonymizeMods) {
-      return buildResourceCommentAsMod(resourceText);
+      return resourceText.toString();
     }
     else {
       return buildResourceCommentAsUser(resourceText, summonerUsername);
@@ -62,22 +57,16 @@ export async function buildResourceComment(resourceText: string, summonerUsernam
   else return buildResourceCommentAsUser(resourceText, summonerUsername);
 }
 
+// Helper function to build comment body when the summoner is not a mod (or mods are not anonymized)
 function buildResourceCommentAsUser(resourceText: string, summonerUsername: string) {
-  const pretext = `u/${summonerUsername} has suggested the following resource:\n\n---\n\n`;
-  const posttext = `\n\n---\n\n*I am a bot, and this action was performed automatically. `
+  const pretext = `u/${summonerUsername} has suggested the following resource:\n\n`;
+  const posttext = `\n\n*I am a bot that has been summoned by u/${summonerUsername}. `
     + `If u/${summonerUsername} wishes to delete this comment, they can reply "!delete" (without quotes). `
     + `If this comment is inappropriate, please report it and the moderator(s) will review.*`;
   return pretext + resourceText + posttext;
 }
 
-function buildResourceCommentAsMod(resourceText: string) {
-  const modmailLink = `https://www.reddit.com/message/compose/?to=/r/${context.subredditName}&subject=Resource%20Reply%20app`;
-  const pretext = `A moderator has suggested the following resource:\n\n---\n\n`;
-  const posttext = `\n\n---\n\n*I am a bot, and this action was performed automatically. `
-    + `Please [contact the moderators of this subreddit](${modmailLink}) if you have any questions or concerns.*`;
-  return pretext + resourceText + posttext;
-}
-
+// Helper function to submit the resource comment and handle pinning/locking
 export async function commentResource(resourceText: string, targetId: string, summonerUsername: string, pinComment: boolean) {
   const commentBody = await buildResourceComment(resourceText, summonerUsername);
   const newComment = await reddit.submitComment({
@@ -87,10 +76,12 @@ export async function commentResource(resourceText: string, targetId: string, su
   });
   await newComment.distinguish(pinComment); // Always distinguish as mod; optionally pin.
   const lockComment = (await settings.get("lockReply")) as boolean;
-  if (lockComment) await newComment.lock();
+  if (lockComment)
+    await newComment.lock();
   return newComment;
 }
 
+// Helper function to trim newlines from the start and end of a string
 export function trimNewlines(text: string) {
   var trimmedText = text;
   while (trimmedText.startsWith("\n")) {
@@ -102,6 +93,7 @@ export function trimNewlines(text: string) {
   return trimmedText;
 }
 
+// Helper function to check if a user is a mod of the subreddit
 export async function isUserAMod(username: string) {
   const user = await reddit.getUserByUsername(username);
   if (user == undefined || user == null) return false;
@@ -109,7 +101,26 @@ export async function isUserAMod(username: string) {
   return (perms != undefined && perms != null && perms.length > 0);
 }
 
+// Helper function to check if a user is banned from the subreddit
 export async function isUserBanned(username: string) {
   const bannedUser = await reddit.getBannedUsers({ subredditName: context.subredditName, username: username }).all();
   return (bannedUser.length > 0);
+}
+
+// Helper function to check for conditions that would prevent a resource comment from being posted,
+// and return an appropriate error message if any are found.
+// Currently only checks for an existing pinned comment, but this could be expanded in the future.
+export async function preCommentError(targetId: string, pinComment: boolean) {
+  if (targetId != undefined && targetId.startsWith("t3_")) {
+    const post = await reddit.getPostById(targetId as PostId);
+    const comments = await post.comments.all();
+    for (const comment of comments) {
+      if (pinComment) {
+        if (comment.isStickied()) {
+          return "There is already a pinned comment on this post.";
+        }
+      }
+    }
+  }
+  return "none";
 }

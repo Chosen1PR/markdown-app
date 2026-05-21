@@ -18,6 +18,12 @@
   },
   "settings": {
     "subreddit": {
+      "resourceConfig": {
+        "type": "paragraph",
+        "label": "Resource Configuration",
+        "helpText": "See the full instructions on the app's README for details on how to configure resources. Drag the lower right corner of this field on desktop to expand it for easier editing.",
+        "defaultValue": ""
+      },
       "pinReply": {
         "type": "boolean",
         "label": "Allow users to pin resources",
@@ -29,12 +35,6 @@
         "label": "Lock all replies",
         "helpText": "If enabled, all resource replies will be locked to prevent further replies. This would prevent users from being able to delete their resource replies with the \"!delete\" command.",
         "defaultValue": false
-      },
-      "resourceConfig": {
-        "type": "paragraph",
-        "label": "Resource Configuration",
-        "helpText": "See the full instructions on r/resource_reply_dev for details on how to configure resources",
-        "defaultValue": ""
       },
       "anonymizeMods": {
         "type": "boolean",
