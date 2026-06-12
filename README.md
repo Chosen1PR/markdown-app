@@ -32,7 +32,7 @@ If you wish to delete the comment (for example, if you accidentally selected the
 
 After installation, you will be taken to the app settings screen. This screen can also be reached from the subreddit-level menu item. From this screen, most settings are self-explanatory, but to add or edit your resources, you'll want to look for the "Resource Configuration" field. You can expand this field for easier editing by dragging the lower right corner.
 
-The only reserved keyword for the start of a line is `title: `, in lower case and with a trailing colon (`:`) *and* single space (` `). Optionally, you can also prefix the `title: ` keyword with one to six `#` characters (e.g., `###title: `). This allows the optional backup wiki page to have better formatting (more on that later). After `title: `, you can declare your resource's title. This is what users will see when selecting a resource from the "Reply with resource" form.
+The only reserved keyword for the start of a line is `title: `, in lower case and with a trailing colon (`:`) *and* single space. Optionally, you can also prefix the `title: ` keyword with one to six hash (`#`) characters (e.g., `###title: `). This allows the optional backup wiki page to have better formatting (more on that later). After `title: `, you can declare your resource's title. This is what users will see when selecting a resource from the "Reply with resource" form.
 
 After the title has been declared, the next line onward contains the comment body, formatted in [Markdown](https://support.reddithelp.com/hc/en-us/articles/360043033952-Formatting-Guide#h_01HEK5SNJM44XVSJFH0BT5QS9X).
 
