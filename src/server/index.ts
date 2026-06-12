@@ -129,7 +129,7 @@ router.post("/internal/forms/comment-resource-submit", async (req, res) => {
     if (preCommentErr == "none") {
       await commentResource(resource, targetId, summonerName, pinReply);
       res.json({
-        showToast: 'Resource submitted as comment.'
+        showToast: 'Resource submitted as comment'
       });
     }
     else {
