@@ -41,7 +41,7 @@ To separate resources, start a line with four dashes (`----`). This way, you can
     title: Test Title 1
     This is the first test comment body.
     ----
-    title: Test Title 2
+    #title: Test Title 2
     
     This is the second comment body.
     
@@ -49,7 +49,7 @@ To separate resources, start a line with four dashes (`----`). This way, you can
     
     ----
     
-    title: Test Title 3
+    ##title: Test Title 3
     
     This is the third comment body.
 
