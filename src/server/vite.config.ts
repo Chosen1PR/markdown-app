@@ -20,5 +20,8 @@ export default defineConfig({
         inlineDynamicImports: true,
       },
     },
+    commonjsOptions: {
+      ignoreDynamicRequires: true
+    },
   },
 });

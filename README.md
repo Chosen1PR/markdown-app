@@ -32,7 +32,9 @@ If you wish to delete the comment (for example, if you accidentally selected the
 
 After installation, you will be taken to the app settings screen. This screen can also be reached from the subreddit-level menu item. From this screen, most settings are self-explanatory, but to add or edit your resources, you'll want to look for the "Resource Configuration" field. You can expand this field for easier editing by dragging the lower right corner.
 
-The only reserved keyword for the start of a line is `title: `, in lower case and with a trailing colon *and* single space. After `title: ` (which again, includes a space after the colon), you can declare your resource's title. This is what users will see when selecting a resource from the "Reply with resource" form. After the title has been declared, the next line onward contains the comment body, formatted in [Markdown](https://support.reddithelp.com/hc/en-us/articles/360043033952-Formatting-Guide#h_01HEK5SNJM44XVSJFH0BT5QS9X).
+The only reserved keyword for the start of a line is `title: `, in lower case and with a trailing colon (`:`) *and* single space (` `). Optionally, you can also prefix the `title: ` keyword with one to six `#` characters (e.g., `###title: `). This allows the optional backup wiki page to have better formatting (more on that later). After `title: `, you can declare your resource's title. This is what users will see when selecting a resource from the "Reply with resource" form.
+
+After the title has been declared, the next line onward contains the comment body, formatted in [Markdown](https://support.reddithelp.com/hc/en-us/articles/360043033952-Formatting-Guide#h_01HEK5SNJM44XVSJFH0BT5QS9X).
 
 To separate resources, start a line with four dashes (`----`). This way, you can still use three dashes in your resource's Markdown to achieve a horizontal rule. Additionally, Resource Reply is "smart" enough to trim leading and trailing line breaks for comment bodies, so you can play around with line spacing to keep everything as neat as you'd like. For example, all of the resources in the example below are valid and will show up with no formatting errors.
 
@@ -55,11 +57,23 @@ To separate resources, start a line with four dashes (`----`). This way, you can
 
 Keep in mind, this flexible spacing **only** works with line breaks and **not** other space or space-like characters (e.g., ` `). To ensure proper app function, make sure there are no unnecessary indentations in your config.
 
-Resources are **not** backed up anywhere, so if you need to uninstall and reinstall the app for whatever reason, back them up locally or on a wiki page in your subreddit. Either way, it'd be a good idea to have a wiki page or pinned post on your subreddit with full details on all resources, so that users may be able to more effectively use them, with or without the app.
+Resources can be backed up to a wiki page (named "resource-reply") by enabling the option in Settings. To back up your resources, just select "Reply with resource" from a post or comment. You do not have to actually *submit* the reply; simply loading the form is enough to trigger the backup.
 
 ---
 
 ## Changelog
+
+### [0.2.6] (2026-06-11)
+
+#### Features
+
+- Added the option to back up resources to a wiki page.
+- Added the ability to prefix the `title` keyword with 1 to 6 `#` characters for better wiki page formatting.
+- Hid the "Post/comment ID" field from the form.
+
+#### Bug Fixes
+
+- Fixed an issue that caused the bot disclaimer message at the end of a comment to appear broken on old.reddit.
 
 ### [0.2.6] Initial version (2026-05-20)
 

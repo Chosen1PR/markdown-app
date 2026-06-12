@@ -41,6 +41,12 @@
         "label": "Anonymize moderators",
         "helpText": "If enabled, moderator usernames will be hidden when suggesting resources.",
         "defaultValue": true
+      },
+      "backupToWiki": {
+        "type": "boolean",
+        "label": "Backup to wiki page",
+        "helpText": "If enabled, resources will be backed up to a public wiki page on old.reddit with the name \"resource-reply\" (visibility can be set manually to mod-only if needed). To trigger a backup, simply select \"Reply with resource\" from a post or comment and load the form.",
+        "defaultValue": false
       }
     }
   },

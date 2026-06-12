@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
   createServer,
   context,
@@ -9,7 +10,19 @@ import {
 
 import type { CommentId, SubredditResource } from "./types";
 
-import { getAllResources, isUserAMod, commentResource, isUserBanned, preCommentError } from "./utils";
+import {
+  getAllResources,
+  isUserAMod,
+  commentResource,
+  isUserBanned,
+  preCommentError
+} from "./utils";
+
+import {
+  cacheSummoner,
+  getTargetIdFromSummonerCache,
+  deleteSummonerCache
+} from "./redis";
 
 //import type { Request, Response } from 'express';
 //import { UiResponse } from '@devvit/web/shared';
@@ -43,10 +56,17 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
     });
     return;
   }
-  var pinSetting = (await settings.get("pinReply")) as boolean;
+  await cacheSummoner(summonerName, targetId);
+  var pinSetting = await settings.get<boolean>("pinReply") ?? false;
   if (await isUserAMod(summonerName))
     pinSetting = true; // Always enable option to pin for mods
   const resources = await getAllResources();
+  if (resources.length == 0) {
+    res.json({
+      showToast: 'This community has not set up resources yet.'
+    });
+    return;
+  }
   res.json({
     showForm: {
       name: 'commentResourceForm',
@@ -79,7 +99,7 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
             defaultValue: context.username!,
             required: true,
             disabled: true
-          },
+          }/*,
           {
             type: 'string',
             name: 'targetId',
@@ -88,28 +108,13 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
             defaultValue: targetId,
             required: true,
             disabled: true
-          },
-          /*{
-            type: 'string',
-            name: 'id',
-            label: 'ID',
-            disabled: true,
-            defaultValue: targetId
-          },
-          {
-            type: 'string',
-            name: 'username',
-            label: 'Username',
-            disabled: true,
-            defaultValue: username
-          },*/
+          }*/
         ],
       },
       acceptLabel: 'Submit',
       cancelLabel: 'Cancel',
       data: {
-        pinReply: pinSetting,
-        
+        pinReply: pinSetting
       }
     },
   });
@@ -117,14 +122,14 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
 
 // Form submission handler which can launch second form for editing saved response comment
 router.post("/internal/forms/comment-resource-submit", async (req, res) => {
-  const { resource, pinReply, summonerName, targetId } = req.body;
-  //const id = await redis.hGet(modUsername, 'id') as string;
+  const { resource, pinReply, summonerName } = req.body;
+  const targetId = await getTargetIdFromSummonerCache(summonerName);
   try {
     const preCommentErr = await preCommentError(targetId, pinReply);
     if (preCommentErr == "none") {
       await commentResource(resource, targetId, summonerName, pinReply);
       res.json({
-        showToast: 'Resource submitted as comment!'
+        showToast: 'Resource submitted as comment.'
       });
     }
     else {
@@ -132,11 +137,13 @@ router.post("/internal/forms/comment-resource-submit", async (req, res) => {
         showToast: preCommentErr
       });
     }
+    await deleteSummonerCache(summonerName);
   }
   catch (error) {
     res.json({
       showToast: 'Error: Could not submit comment.'
     });
+    await deleteSummonerCache(summonerName);
     console.log(error);
   }
 });

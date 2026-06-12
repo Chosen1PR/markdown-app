@@ -3,6 +3,9 @@ import {
   reddit,
   settings,
 } from "@devvit/web/server";
+
+import { cacheResources, getCachedResources } from "./redis";
+
 import { PostOrCommentId, PostId, SubredditResource } from "./types";
 
 import { Readable } from "node:stream";
@@ -11,8 +14,10 @@ import * as readline from "node:readline";
 // Helper function to get filtered list of resources
 export async function getAllResources() {
   // Get full list of Resources from the app settings
-  const resourcesConfig = (await settings.get("resourceConfig")) as string;
+  const resourcesConfig = await settings.get<string>("resourceConfig");
   if (resourcesConfig == undefined || resourcesConfig.trim() == "") return [];
+  const backupToWiki = await settings.get<boolean>('backupToWiki');
+  if (backupToWiki) await backupResourcesToWikiIfUpdated(resourcesConfig);
   const allResources: SubredditResource[] = [];
   const stream = Readable.from(resourcesConfig);
   const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
@@ -26,8 +31,8 @@ export async function getAllResources() {
         resourceBody = "";
       }
     }
-    else if (line.startsWith("title: ")) {
-      resourceTitle = line.substring("title: ".length);
+    else if (isResourceTitle(line)) {
+      resourceTitle = extractTitleFromLine(line);
       resourceBody = "";
     }
     else {
@@ -46,7 +51,7 @@ export async function getAllResources() {
 export async function buildResourceComment(resourceText: string, summonerUsername: string) {
   const userIsMod = await isUserAMod(summonerUsername);
   if (userIsMod) {
-    const anonymizeMods = (await settings.get("anonymizeMods")) as boolean;
+    const anonymizeMods = await settings.get<boolean>("anonymizeMods");
     if (anonymizeMods) {
       return resourceText.toString();
     }
@@ -60,9 +65,11 @@ export async function buildResourceComment(resourceText: string, summonerUsernam
 // Helper function to build comment body when the summoner is not a mod (or mods are not anonymized)
 function buildResourceCommentAsUser(resourceText: string, summonerUsername: string) {
   const pretext = `u/${summonerUsername} has suggested the following resource:\n\n`;
-  const posttext = `\n\n^(*I am a bot that was summoned by user ${summonerUsername}. `
-    + `If ${summonerUsername} wishes to delete this comment, they can reply "!delete" \\(without quotes or spaces\\). `
-    + `If this comment is inappropriate, please report it and the moderator\\(s\\) will review.*)`;
+  var posttext = `\n\n^*I am a bot that was summoned by user ${summonerUsername}. `
+    + `If ${summonerUsername} wishes to delete this comment, they can reply "!delete" \\(without quotes or spaces). `
+    + `If this comment is inappropriate, please report it and the moderator(s) will review.*`;
+  posttext = posttext.replace(/ /g, `&nbsp;`);
+  //posttext = posttext.replace(/ /g, ` ^`);
   return pretext + resourceText + posttext;
 }
 
@@ -75,7 +82,7 @@ export async function commentResource(resourceText: string, targetId: string, su
     runAs: 'APP'
   });
   await newComment.distinguish(pinComment); // Always distinguish as mod; optionally pin.
-  const lockComment = (await settings.get("lockReply")) as boolean;
+  const lockComment = await settings.get<boolean>("lockReply");
   if (lockComment)
     await newComment.lock();
   return newComment;
@@ -111,7 +118,10 @@ export async function isUserBanned(username: string) {
 // and return an appropriate error message if any are found.
 // Currently only checks for an existing pinned comment, but this could be expanded in the future.
 export async function preCommentError(targetId: string, pinComment: boolean) {
-  if (targetId != undefined && targetId.startsWith("t3_")) {
+  if (targetId == undefined || targetId == '') {
+    return "Error: Could not find the post/comment to reply to.";
+  }
+  else if (targetId.startsWith("t3_")) {
     const post = await reddit.getPostById(targetId as PostId);
     const comments = await post.comments.all();
     for (const comment of comments) {
@@ -123,4 +133,47 @@ export async function preCommentError(targetId: string, pinComment: boolean) {
     }
   }
   return "none";
+}
+
+function isResourceTitle(line: string) {
+  // Regex breakdown:
+  // ^#{0,6}  - Matches 0 to 6 leading '#' symbols at the start of the line
+  // title:\s - Matches the literal 'title:' followed by a single space
+  // .+       - Captures everything else
+  const titleRegex = /^#{0,6}title:\s.+/;
+  return titleRegex.test(line);
+}
+
+function extractTitleFromLine(line: string): string {
+  // Regex breakdown:
+  // ^#{0,6}   - Matches 0 to 6 leading '#' symbols at the start of the line
+  // title:\s* - Matches the literal 'title:' followed by any optional spaces
+  // (.*)$     - Captures everything else until the end of the line
+  const titleRegex = /^#{0,6}title:\s+(.*)$/;
+  const match = line.match(titleRegex);
+  if (match != null && match[1] != null && match[1] != undefined) {
+    return match[1].trim();
+  }
+  else return "";
+}
+
+async function backupResourcesToWikiIfUpdated(resourcesConfig: string) {
+  const cachedResources = (await getCachedResources()) ?? "";
+  if (cachedResources != resourcesConfig) {
+    await cacheResources(resourcesConfig);
+    try {
+      await reddit.updateWikiPage({
+        subredditName: context.subredditName,
+        page: 'resource-reply',
+        content: resourcesConfig,
+        reason: 'Automatic backup'
+      });
+      return true;
+    }
+    catch (error) {
+      console.log("Error: Could not back up to wiki page.");
+      return false;
+    }
+  }
+  else return false;
 }

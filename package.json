@@ -2,7 +2,6 @@
   "private": true,
   "name": "resource-reply",
   "version": "0.0.0",
-  "license": "BSD-3-Clause",
   "type": "module",
   "scripts": {
     "build:server": "cd src/server && vite build",
@@ -18,13 +17,13 @@
     "publish": "npm run build && npx devvit publish --public"
   },
   "dependencies": {
-    "@devvit/web": "0.12.24",
+    "@devvit/web": "0.13.3",
     "express": "5.1.0"
   },
   "devDependencies": {
     "@types/express": "5.0.1",
     "concurrently": "9.1.2",
-    "devvit": "0.12.24",
+    "devvit": "0.13.3",
     "dotenv-cli": "8.0.0",
     "typescript": "5.8.3",
     "vite": "^7.2.6"
