@@ -65,20 +65,17 @@ Resources can be backed up to a wiki page (named "resource-reply") by enabling t
 
 ### [0.2.9] (2026-06-13)
 
-- Added options to disallow resource replies by users to mods or anywhere on mod posts. This could be useful for announcement posts.
-- Fixed an issue that allowed users to reply to locked posts/comments.
-
-### [0.2.8] (2026-06-12)
-
 #### Features
 
 - Added the option to back up resources to a wiki page.
 - Added the ability to prefix the `title` keyword with 1 to 6 `#` characters for better wiki page formatting.
+- Added options to disallow resource replies by users to mods or anywhere on mod posts. This could be useful for announcement posts.
 - Hid the "Post/comment ID" field from the form.
 
 #### Bug Fixes
 
-- Fixed an issue that caused the bot disclaimer message at the end of a comment to appear broken on old.reddit.
+- Fixed an issue that caused the bot disclaimer message at the end of a reply to appear broken on old.reddit.
+- Fixed an issue that allowed users to reply to locked posts/comments.
 
 ### [0.2.6] Initial version (2026-05-20)
 
