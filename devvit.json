@@ -24,6 +24,12 @@
         "helpText": "See the full instructions on the app's README for details on how to configure resources. Drag the lower right corner of this field on desktop to expand it for easier editing.",
         "defaultValue": ""
       },
+      "backupToWiki": {
+        "type": "boolean",
+        "label": "Backup to wiki page",
+        "helpText": "If enabled, resources will be backed up to a public wiki page on old.reddit with the name \"resource-reply\" (visibility can be set manually to mod-only if needed). To trigger a backup, simply select \"Reply with resource\" from a post or comment and load the form.",
+        "defaultValue": false
+      },
       "pinReply": {
         "type": "boolean",
         "label": "Allow users to pin resources",
@@ -53,12 +59,6 @@
         "label": "Allow users to reply anywhere on mod posts",
         "helpText": "If enabled, users can reply to comments in mod posts with resources. Mods can still reply anywhere. You could disable this for announcement posts, for example.",
         "defaultValue": true
-      },
-      "backupToWiki": {
-        "type": "boolean",
-        "label": "Backup to wiki page",
-        "helpText": "If enabled, resources will be backed up to a public wiki page on old.reddit with the name \"resource-reply\" (visibility can be set manually to mod-only if needed). To trigger a backup, simply select \"Reply with resource\" from a post or comment and load the form.",
-        "defaultValue": false
       }
     }
   },
