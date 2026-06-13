@@ -6,13 +6,15 @@ import {
   getServerPort,
   reddit,
   settings,
+  Post,
+  Comment
 } from "@devvit/web/server";
 
-import type { CommentId, SubredditResource } from "./types";
+import type { PostId, CommentId, SubredditResource } from "./types";
 
 import {
   getAllResources,
-  isUserAMod,
+  isUserMod,
   commentResource,
   isUserBanned,
   preCommentError
@@ -56,9 +58,66 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
     });
     return;
   }
-  await cacheSummoner(summonerName, targetId);
+  let targetPostOrComment: Post | Comment | undefined;
+  let targetKind = '';
+  if (targetId.startsWith('t3_')) {
+    targetPostOrComment = await reddit.getPostById(targetId as PostId);
+    targetKind = 'post';
+  }
+  else if (targetId.startsWith('t1_')) {
+    targetPostOrComment = await reddit.getCommentById(targetId as CommentId);
+    targetKind = 'comment';
+  }
+  if (!targetPostOrComment) {
+    res.json({
+      showToast: `Error: Could not find target ${targetKind}.`
+    });
+    return;
+  }
+  const targetAuthorIsMod = await isUserMod(targetPostOrComment.authorName);
+  const summonerIsMod = await isUserMod(summonerName);
+  if (targetPostOrComment.isLocked() && !summonerIsMod) {
+    res.json({
+      showToast: `This ${targetKind} is locked.`
+    });
+    return;
+  }
+  const allowRepliesToMods = await settings.get<boolean>('allowRepliesToMods'),
+  allowOnModSubmissions = await settings.get<boolean>('allowOnModSubmissions');
+  if (!allowRepliesToMods || !allowOnModSubmissions) {
+    if (targetAuthorIsMod && !summonerIsMod) {
+      res.json({
+        showToast: `Resource replies to mods are not allowed.`
+      });
+      return;
+    }
+  }
+  if (targetKind == 'comment') {
+    const parentPost = await reddit.getPostById((targetPostOrComment as Comment).postId);
+    if (!parentPost) {
+      res.json({
+        showToast: `Error: Could not find parent post.`
+      });
+      return;
+    }
+    if (parentPost.isLocked() && !summonerIsMod) {
+      res.json({
+        showToast: `This post is locked.`
+      });
+      return;
+    }
+    if (!allowOnModSubmissions) {
+      const parentPostIsByMod = await isUserMod(parentPost.authorName);
+      if (parentPostIsByMod && !summonerIsMod) {
+        res.json({
+          showToast: `Resource replies are not allowed on mod posts.`
+        });
+        return;
+      }
+    }
+  }
   var pinSetting = await settings.get<boolean>("pinReply") ?? false;
-  if (await isUserAMod(summonerName))
+  if (summonerIsMod)
     pinSetting = true; // Always enable option to pin for mods
   const resources = await getAllResources();
   if (resources.length == 0) {
@@ -67,6 +126,7 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
     });
     return;
   }
+  await cacheSummoner(summonerName, targetId);
   res.json({
     showForm: {
       name: 'commentResourceForm',
@@ -163,7 +223,7 @@ router.post('/internal/triggers/on-comment-create', async (req, _res) => {
     var summonerName = "";
     if (parentComment.body.startsWith('u/'))
       summonerName = parentComment.body.substring(2, parentComment.body.indexOf(' '));
-    const userIsMod = await isUserAMod(commentAuthorName);
+    const userIsMod = await isUserMod(commentAuthorName);
     const userIsSummoner = (commentAuthorName == summonerName);
     if (userIsMod) {
       await parentComment.delete();

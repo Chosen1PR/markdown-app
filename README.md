@@ -63,6 +63,11 @@ Resources can be backed up to a wiki page (named "resource-reply") by enabling t
 
 ## Changelog
 
+### [0.2.9] (2026-06-13)
+
+- Added options to disallow resource replies by users to mods or anywhere on mod posts. This could be useful for announcement posts.
+- Fixed an issue that allowed users to reply to locked posts/comments.
+
 ### [0.2.8] (2026-06-12)
 
 #### Features

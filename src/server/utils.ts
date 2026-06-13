@@ -49,7 +49,7 @@ export async function getAllResources() {
 
 // Helper function to build the comment body for a resource suggestion
 export async function buildResourceComment(resourceText: string, summonerUsername: string) {
-  const userIsMod = await isUserAMod(summonerUsername);
+  const userIsMod = await isUserMod(summonerUsername);
   if (userIsMod) {
     const anonymizeMods = await settings.get<boolean>("anonymizeMods");
     if (anonymizeMods) {
@@ -101,7 +101,7 @@ export function trimNewlines(text: string) {
 }
 
 // Helper function to check if a user is a mod of the subreddit
-export async function isUserAMod(username: string) {
+export async function isUserMod(username: string) {
   const user = await reddit.getUserByUsername(username);
   if (user == undefined || user == null) return false;
   const perms = await user.getModPermissionsForSubreddit(context.subredditName);

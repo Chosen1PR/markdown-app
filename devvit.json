@@ -42,6 +42,18 @@
         "helpText": "If enabled, moderator usernames will be hidden when suggesting resources.",
         "defaultValue": true
       },
+      "allowRepliesToMods": {
+        "type": "boolean",
+        "label": "Allow users to reply to mods",
+        "helpText": "If enabled, users can reply directly to mods with resources. Mods can still reply anywhere.",
+        "defaultValue": true
+      },
+      "allowOnModSubmissions": {
+        "type": "boolean",
+        "label": "Allow users to reply anywhere on mod posts",
+        "helpText": "If enabled, users can reply to comments in mod posts with resources. Mods can still reply anywhere. You could disable this for announcement posts, for example.",
+        "defaultValue": true
+      },
       "backupToWiki": {
         "type": "boolean",
         "label": "Backup to wiki page",
