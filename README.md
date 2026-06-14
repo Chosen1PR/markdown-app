@@ -63,7 +63,7 @@ Resources can be backed up to a wiki page (named "resource-reply") by enabling t
 
 ## Changelog
 
-### [0.2.11] (2026-06-14)
+### [0.2.12] (2026-06-14)
 
 #### Features
 

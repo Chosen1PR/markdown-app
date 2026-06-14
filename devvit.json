@@ -21,7 +21,7 @@
       "resourceConfig": {
         "type": "paragraph",
         "label": "Resource Configuration",
-        "helpText": "See the full instructions on https://developers.reddit.com/apps/resource-reply for details on how to configure resources. Drag the lower right corner of this field on desktop to expand it for easier editing.",
+        "helpText": "See the full instructions at https://developers.reddit.com/apps/resource-reply for details on how to configure resources. Drag the lower right corner of this field on desktop to expand it for easier editing.",
         "defaultValue": ""
       },
       "backupToWiki": {
