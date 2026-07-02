@@ -63,6 +63,10 @@ Resources can be backed up to a wiki page (named "resource-reply") by enabling t
 
 ## Changelog
 
+### [0.2.13] (2026-07-02)
+
+- Implemented a workaround for when Devvit passes invalid usernames and/or comment bodies.
+
 ### [0.2.12] (2026-06-14)
 
 #### Features

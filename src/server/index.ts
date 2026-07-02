@@ -6,18 +6,21 @@ import {
   getServerPort,
   reddit,
   settings,
-  Post,
   Comment
 } from "@devvit/web/server";
 
-import type { PostId, CommentId, SubredditResource } from "./types";
+import type { CommentId, SubredditResource } from "./types";
 
 import {
   getAllResources,
   isUserMod,
   commentResource,
   isUserBanned,
-  preCommentError
+  preCommentError,
+  getPostOrComment,
+  getRequestBodyValue,
+  isValidCommentBody,
+  isValidUsername
 } from "./utils";
 
 import {
@@ -50,7 +53,7 @@ router.post("/internal/menu/app-settings", async (_req, res): Promise<void> => {
 // Menu item which launches Comment Resource form
 router.post("/internal/menu/comment-resource", async (req, res) => {
   const summonerName = context.username!;
-  const targetId = req.body.targetId! as string;
+  const targetId = getRequestBodyValue(req.body, ['targetId']);
   const isPost = targetId.startsWith("t3_");
   if (await isUserBanned(summonerName)) {
     res.json({
@@ -58,16 +61,16 @@ router.post("/internal/menu/comment-resource", async (req, res) => {
     });
     return;
   }
-  let targetPostOrComment: Post | Comment | undefined;
   let targetKind = '';
-  if (targetId.startsWith('t3_')) {
-    targetPostOrComment = await reddit.getPostById(targetId as PostId);
-    targetKind = 'post';
+  if (targetId.startsWith('t3_')) targetKind = 'post';
+  else if (targetId.startsWith('t1_')) targetKind = 'comment';
+  else {
+    res.json({
+      showToast: `Error: Could not find target post/comment.`
+    });
+    return;
   }
-  else if (targetId.startsWith('t1_')) {
-    targetPostOrComment = await reddit.getCommentById(targetId as CommentId);
-    targetKind = 'comment';
-  }
+  const targetPostOrComment = await getPostOrComment(targetId);
   if (!targetPostOrComment) {
     res.json({
       showToast: `Error: Could not find target ${targetKind}.`
@@ -210,17 +213,26 @@ router.post("/internal/forms/comment-resource-submit", async (req, res) => {
 
 router.post('/internal/triggers/on-comment-create', async (req, _res) => {
   //console.log(`Full Comment JSON:\n${JSON.stringify(req.body, null, 2)}`);
-  //const commentId = req.body.comment.id as CommentId;
-  const commentBody = req.body.comment.body as string;
-  const commentAuthorName = req.body.author.name as string;
-  //const commentAuthorId = req.body.author.id as string;
-  const parentId = req.body.comment.parentId as string;
+  const commentId = getRequestBodyValue(req.body, ['comment', 'id']),
+  //commentAuthorId = getRequestBodyValue(req.body, ['author', 'id']);
+  parentId = getRequestBodyValue(req.body, ['comment', 'parentId']);
   if (parentId.startsWith('t3_')) return;
-  if (commentBody != undefined && commentBody.trim().toLowerCase().startsWith('!delete')) {
+  let commentBody = getRequestBodyValue(req.body, ['comment', 'body']),
+  commentAuthorName = getRequestBodyValue(req.body, ['author', 'name']);
+  const validAuthorName = isValidUsername(commentAuthorName),
+  validCommentBody = isValidCommentBody(commentBody);
+  if (!validAuthorName || !validCommentBody) {
+    const comment = await reddit.getCommentById(commentId as CommentId);
+    if (comment) {
+      if (!validAuthorName) commentAuthorName = comment.authorName;
+      if (!validCommentBody) commentBody = comment.body;
+    }
+  }
+  if (commentBody.trim().toLowerCase().startsWith('!delete')) {
     const parentComment = await reddit.getCommentById(parentId as CommentId);
     if (parentComment == undefined || parentComment == null) return;
     if (parentComment.authorName != context.appSlug) return;
-    var summonerName = "";
+    var summonerName = '';
     if (parentComment.body.startsWith('u/'))
       summonerName = parentComment.body.substring(2, parentComment.body.indexOf(' '));
     const userIsMod = await isUserMod(commentAuthorName);
