@@ -1,95 +1,33 @@
 ## Features
 
-This app allows users to reply to a post or comment with a helpful resource that is saved at the subreddit level by moderators. The app account will reply with a saved resource similar to how AutoModerator can reply with a pre-defined comment when summoned by a specific keyword or command (e.g., "!summon"). With Resource Reply, however, you can leave out those clunky commands and simply use a menu item from a post or comment's context menu (a.k.a. the "..." menu). This also ensures that the app account replies directly to the original poster or commenter, and not the user who summoned it.
+Around mid-2026, Reddit started phasing out the ability to create posts and comments in the mobile app (on both iOS and Android) using Markdown. Mobile Markdown brings this functionality back, with some minor limitations.
 
-Additionally, mods can choose:
+On private or restricted subreddits, only approved users will be allowed to post. Banned users on any subreddit will be locked out of the app entirely. Furthermore, mods can choose whether or not to require post flair for posts by users (mod posts will never require flair).
 
-- whether to allow users to pin a resource comment to a post if they're replying directly to it.
-- whether to lock replies to resource comments by default.
-- whether to hide their username and simply share the resource as the app account.
+The app also respects subreddit settings, such as allowed post types. If text posts are not allowed on your subreddit, only mods will be able to submit text posts. As expected, only mods will be able to comment on locked posts/comments.
 
-To prevent abuse, the app account will still name the user who summoned it. Banned users will also be unable to summon the app.
+## Usage Instructions
 
----
+To create a new post in Markdown, visit a subreddit on the mobile app and tap the three dots ("...") at the upper right corner of the screen. Then, select "Create post in Markdown."
 
-## User Instructions
+To create a new comment or reply, tap the three dots ("...") on the post or comment you want to reply to and select "Comment/reply in Markdown."
 
-To summon the app and make it comment a resource on a post or comment:
+## Known issues/limitations
 
-1. Locate the context menu for the post or comment you want to reply to. The button for this typically looks like three dots ("...").
-2. Scroll down to "Reply with resource."
-3. Select a resource via its title in the drop-down.
-4. Choose whether or not you want to pin the resource to the post. In some cases, this option may not be available.
-5. Click OK. That's it!
-
-If you wish to delete the comment (for example, if you accidentally selected the wrong resource), simply comment "!delete" (without quotes).
-
-*Note: When mods delete comments this way, they are fully deleted from Reddit. When **users** delete comments this way, they simply remove them from public view, but mods can still see them.*
-
----
-
-## Mod Instructions
-
-After installation, you will be taken to the app settings screen. This screen can also be reached from the subreddit-level menu item. From this screen, most settings are self-explanatory, but to add or edit your resources, you'll want to look for the "Resource Configuration" field. You can expand this field for easier editing by dragging the lower right corner.
-
-The only reserved keyword for the start of a line is `title: `, in lower case and with a trailing colon (`:`) *and* single space. Optionally, you can also prefix the `title: ` keyword with one to six hash (`#`) characters (e.g., `###title: `). This allows the optional backup wiki page to have better formatting (more on that later). After `title: `, you can declare your resource's title. This is what users will see when selecting a resource from the "Reply with resource" form.
-
-After the title has been declared, the next line onward contains the comment body, formatted in [Markdown](https://support.reddithelp.com/hc/en-us/articles/360043033952-Formatting-Guide#h_01HEK5SNJM44XVSJFH0BT5QS9X).
-
-To separate resources, start a line with four dashes (`----`). This way, you can still use three dashes in your resource's Markdown to achieve a horizontal rule. Additionally, Resource Reply is "smart" enough to trim leading and trailing line breaks for comment bodies, so you can play around with line spacing to keep everything as neat as you'd like. For example, all of the resources in the example below are valid and will show up with no formatting errors.
-
-    title: Test Title 1
-    This is the first test comment body.
-    ----
-    #title: Test Title 2
-    
-    This is the second comment body.
-    
-    Some more text here.
-    
-    ----
-    
-    ##title: Test Title 3
-    
-    This is the third comment body.
-
-    Even more text down here.
-
-Keep in mind, this flexible spacing **only** works with line breaks and **not** other space or space-like characters (e.g., ` `). To ensure proper app function, make sure there are no unnecessary indentations in your config.
-
-Resources can be backed up to a wiki page (named "resource-reply") by enabling the option in Settings. To back up your resources, just select "Reply with resource" from a post or comment. You do not have to actually *submit* the reply; simply loading the form is enough to trigger the backup.
+- Only the creation of new posts/comments is supported. Unfortunately, the Developer Platform does not currently support editing *existing* posts/comments.
+- The app cannot automatically see whether or not post flair is required in your subreddit, but there *is* a separate app setting for this. Please ensure the app's setting matches your subreddit's setting.
 
 ---
 
 ## Changelog
 
-### [0.2.13] (2026-07-02)
-
-- Implemented a workaround for when Devvit passes invalid usernames and/or comment bodies.
-
-### [0.2.12] (2026-06-14)
+### [0.0.3] Initial version (2026-07-11)
 
 #### Features
 
-- Added the option to back up resources to a wiki page.
-- Added the ability to prefix the `title` keyword with 1 to 6 `#` characters for better wiki page formatting.
-- Added options to disallow resource replies by users to mods or anywhere on mod posts. This could be useful for announcement posts.
-- Hid the "Post/comment ID" field from the form.
-
-#### Bug Fixes
-
-- Fixed an issue that caused the bot disclaimer message at the end of a reply to appear broken on old.reddit.
-- Fixed an issue that allowed users to reply to locked posts/comments.
-
-### [0.2.6] Initial version (2026-05-20)
-
-#### Features
-
-- Allow users to reply with a helpful resource in the form of a pre-defined comment.
-- Define resources by title and comment body.
-- Choose whether to allow users to pin a resource comment to a post if they're replying directly to it.
-- Choose whether to lock replies to resource comments by default.
-- Choose whether to hide moderator usernames.
+- Create a new post or comment using Markdown, even on the Reddit mobile app.
+- Choose whether or not to require post flair for posts by users.
+- Configure the default line height for post/comment body fields (independently from each other).
 
 #### Bug Fixes
 

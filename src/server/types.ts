@@ -2,4 +2,3 @@
 export type PostId = `t3_${string}`;
 export type CommentId = `t1_${string}`;
 export type PostOrCommentId = PostId | CommentId;
-export type SubredditResource = { title: string; body: string };

@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
-  "name": "resource-reply",
+  "name": "markdown-app",
   "permissions": {
     "http": {
       "enable": false
@@ -9,7 +9,11 @@
     "realtime": false,
     "redis": true,
     "reddit": {
-      "enable": true
+      "enable": true,
+      "asUser": [
+        "SUBMIT_POST",
+        "SUBMIT_COMMENT"
+      ]
     }
   },
   "server": {
@@ -18,81 +22,63 @@
   },
   "settings": {
     "subreddit": {
-      "resourceConfig": {
-        "type": "paragraph",
-        "label": "Resource Configuration",
-        "helpText": "See the full instructions at https://developers.reddit.com/apps/resource-reply for details on how to configure resources. Drag the lower right corner of this field on desktop to expand it for easier editing.",
-        "defaultValue": ""
-      },
-      "backupToWiki": {
+      "requirePostFlair": {
         "type": "boolean",
-        "label": "Backup to wiki page",
-        "helpText": "If enabled, resources will be backed up to a public wiki page on old.reddit with the name \"resource-reply\" (visibility can be set manually to mod-only if needed). To trigger a backup, simply select \"Reply with resource\" from a post or comment and load the form.",
+        "label": "Require post flair",
         "defaultValue": false
       },
-      "pinReply": {
+      "postBodyHeight": {
+        "type": "number",
+        "label": "Line height for post body",
+        "helpText": "This is how tall the post body field will be, in number of lines. Positive whole numbers only. Note: In iOS, anything above approximately 11 lines will be ignored by Reddit.",
+        "defaultValue": 10
+      },
+      "commentBodyHeight": {
+        "type": "number",
+        "label": "Line height for comment body",
+        "helpText": "This is how tall the comment body field will be, in number of lines.",
+        "defaultValue": 6
+      },
+      "replaceEmDash": {
         "type": "boolean",
-        "label": "Allow users to pin resources",
-        "helpText": "If enabled, users will be able to pin a resource reply to a post if they're replying directly to it.",
+        "label": "Replace em-dash-and-hyphen",
+        "helpText": "If enabled, a combination of em-dash followed immediately by a hyphen (—-) will be replaced with three hyphens (---) to make horizontal rules easier on mobile.",
         "defaultValue": false
-      },
-      "lockReply": {
-        "type": "boolean",
-        "label": "Lock all replies",
-        "helpText": "If enabled, all resource replies will be locked to prevent further replies. This would prevent users from being able to delete their resource replies with the \"!delete\" command.",
-        "defaultValue": false
-      },
-      "anonymizeMods": {
-        "type": "boolean",
-        "label": "Anonymize moderators",
-        "helpText": "If enabled, moderator usernames will be hidden when suggesting resources.",
-        "defaultValue": true
-      },
-      "allowRepliesToMods": {
-        "type": "boolean",
-        "label": "Allow users to reply to mods",
-        "helpText": "If enabled, users can reply directly to mods with resources. Mods can still reply anywhere.",
-        "defaultValue": true
-      },
-      "allowOnModSubmissions": {
-        "type": "boolean",
-        "label": "Allow users to reply anywhere on mod posts",
-        "helpText": "If enabled, users can reply to comments in mod posts with resources. Mods can still reply anywhere. You could disable this for announcement posts, for example.",
-        "defaultValue": true
       }
     }
   },
   "menu": {
     "items": [
       {
-        "label": "Resource Reply",
-        "description": "Settings",
-        "forUserType": "moderator",
+        "label": "Create post",
+        "description": "in Markdown",
+        "forUserType": "user",
         "location": [
           "subreddit"
         ],
-        "endpoint": "/internal/menu/app-settings"
+        "endpoint": "/internal/menu/create-post"
       },
       {
-        "label": "Reply with resource",
+        "label": "Comment/reply",
+        "description": "in Markdown",
         "forUserType": "user",
         "location": [
           "comment",
           "post"
         ],
-        "endpoint": "/internal/menu/comment-resource"
+        "endpoint": "/internal/menu/create-comment"
       }
     ]
   },
   "forms": {
-    "commentResourceForm": "/internal/forms/comment-resource-submit"
+    "createPost": "/internal/forms/create-post-submit",
+    "createComment": "/internal/forms/create-comment-submit"
   },
   "triggers": {
-    "onAppUpgrade": "/internal/triggers/on-app-upgrade",
-    "onCommentCreate": "/internal/triggers/on-comment-create"
+    "onAppUpgrade": "/internal/triggers/on-app-upgrade"
   },
   "marketingAssets": {
-    "icon": "assets/rr-icon.png"
+    "icon": "assets/ma-icon.png"
   },
   "dev": {
     "subreddit": "CapitalOneBank"
