@@ -21,7 +21,7 @@ To create a new comment or reply, tap the three dots ("...") on the post or comm
 
 ## Changelog
 
-### [0.0.3] Initial version (2026-07-11)
+### [0.0.5] Initial version (2026-07-11)
 
 #### Features
 
