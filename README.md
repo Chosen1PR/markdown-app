@@ -1,6 +1,6 @@
 ## Features
 
-Around mid-2026, Reddit started phasing out the ability to create posts and comments in the mobile app (on both iOS and Android) using Markdown. Mobile Markdown brings this functionality back, with some minor limitations.
+Around mid-2026, Reddit started phasing out the ability to create posts and comments in the mobile app (on both iOS and Android) using Markdown. Mobile Markdown brings this functionality back, with only some minor limitations (explained further below in the "Known Issues/Limitations" section).
 
 On private or restricted subreddits, only approved users will be allowed to post. Banned users on any subreddit will be locked out of the app entirely. Furthermore, mods can choose whether or not to require post flair for posts by users (mod posts will never require flair).
 
@@ -12,7 +12,7 @@ To create a new post in Markdown, visit a subreddit on the mobile app and tap th
 
 To create a new comment or reply, tap the three dots ("...") on the post or comment you want to reply to and select "Comment/reply in Markdown."
 
-## Known issues/limitations
+## Known Issues/Limitations
 
 - Only the creation of new posts/comments is supported. Unfortunately, the Developer Platform does not currently support editing *existing* posts/comments.
 - The app cannot automatically see whether or not post flair is required in your subreddit, but there *is* a separate app setting for this. Please ensure the app's setting matches your subreddit's setting.
@@ -21,7 +21,7 @@ To create a new comment or reply, tap the three dots ("...") on the post or comm
 
 ## Changelog
 
-### [0.0.5] Initial version (2026-07-11)
+### [0.0.6] Initial version (2026-07-11)
 
 #### Features
 
