@@ -21,7 +21,7 @@ To create a new comment or reply, tap the three dots ("...") on the post or comm
 
 ## Changelog
 
-### [0.0.7] (2026-07-13)
+### [0.0.8] (2026-07-13)
 
 - Fixed an issue that caused the Post Flair field to always be disabled on iOS.
 
