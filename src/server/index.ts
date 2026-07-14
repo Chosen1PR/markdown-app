@@ -102,7 +102,7 @@ router.post("/internal/menu/create-post", async (_req, res) => {
               value: templates.id,
             })),
             required: (flairRequired && !userIsMod),
-            disabled: !flairsAllowed
+            disabled: (!flairsAllowed || flairTemplates.length == 0)
           },
           {
             type: 'paragraph',

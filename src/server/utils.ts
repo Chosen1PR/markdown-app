@@ -98,11 +98,13 @@ export async function getPostOrComment(id: string): Promise<Post | Comment | und
 // Helper function to determine if post flairs are both enabled and self-assignable in a subreddit.
 export function arePostFlairsAllowed(subreddit: SubredditInfo) {
   const flairSettings = subreddit.postFlairSettings;
-  let flairsAllowed = false;
+  // Fall back to true, in case there is any issue with Devvit not having the information we need
+  // (e.g., undefined properties).
+  let flairsAllowed = true;
   if (flairSettings) {
-    const isEnabled = flairSettings.isEnabled ?? false;
-    const isSelfAssignable = flairSettings.isSelfAssignabled ?? false;
-    flairsAllowed = isEnabled && isSelfAssignable;
+    const isEnabled = flairSettings.isEnabled ?? true;
+    const isSelfAssignable = flairSettings.isSelfAssignabled ?? true;
+    flairsAllowed = (isEnabled && isSelfAssignable);
   }
   return flairsAllowed;
 }
@@ -121,7 +123,7 @@ export function areTextPostsAllowed(subreddit: SubredditInfo) {
 // Should not be called on banned users or mods.
 export async function isUnbannedUserAllowedToPost(username: string, subreddit: SubredditInfo) {
   const subType = subreddit.type ?? 'public';
-  if (subType == 'public') return true;
+  if (subType.toLowerCase() == 'public') return true;
   const postingIsRestricted = subreddit.isPostingRestricted ?? false;
   if (postingIsRestricted) {
     return await isUserApproved(username);
@@ -133,7 +135,7 @@ export async function isUnbannedUserAllowedToPost(username: string, subreddit: S
 // Should not be called on banned users or mods.
 export async function isUnbannedUserAllowedToComment(username: string, subreddit: SubredditInfo) {
   const subType = subreddit.type ?? 'public';
-  if (subType == 'public') return true;
+  if (subType.toLowerCase() == 'public') return true;
   const commentingIsRestricted = subreddit.isCommentingRestricted ?? false;
   if (commentingIsRestricted) {
     return await isUserApproved(username);
